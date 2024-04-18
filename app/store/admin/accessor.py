@@ -1,4 +1,6 @@
+from hashlib import sha256
 from typing import TYPE_CHECKING
+from sqlalchemy import select
 
 from app.admin.models import AdminModel
 from app.base.base_accessor import BaseAccessor
@@ -9,10 +11,29 @@ if TYPE_CHECKING:
 
 class AdminAccessor(BaseAccessor):
     async def connect(self, app: "Application") -> None:
-        raise NotImplementedError
+        await self.create_admin(
+            email=app.config.admin.email, password=app.config.admin.password
+        )
 
     async def get_by_email(self, email: str) -> AdminModel | None:
-        raise NotImplementedError
+        async with self.app.database.session as session:
+            self.logger.info(f"Ищем по емейлу: {email}")
+            query = select(AdminModel).where(AdminModel.email == email)
+            admin = await session.scalar(query)
+        return admin
 
     async def create_admin(self, email: str, password: str) -> AdminModel:
-        raise NotImplementedError
+        admin = AdminModel(
+            email=email,
+            password=sha256(password.encode()).hexdigest()
+        )
+
+        async with self.app.database.session as session:
+            exist_admin = await self.get_by_email(admin.email)
+            if exist_admin.email == admin.email:
+                self.logger.warn("Пользователь уже существует")
+            else:
+                self.logger.info("Добавляем админа")
+                session.add(admin)
+                await session.commit()
+        return admin
