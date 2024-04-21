@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine
 )
-from sqlalchemy.ext.declarative import DeclarativeMeta
 from sqlalchemy.orm import DeclarativeBase
 
 from app.store.database import BaseModel
@@ -37,10 +36,14 @@ class Database:
             echo=True,
             future=True
         )
-        async_session_maker = async_sessionmaker(
-            self.engine, class_=AsyncSession, expire_on_commit=False
+        # async_session_maker = async_sessionmaker(
+        #     self.engine, class_=AsyncSession, expire_on_commit=False
+        # )
+        self.session = async_sessionmaker(
+            bind=self.engine,
+            class_=AsyncSession,
+            expire_on_commit=False
         )
-        self.session = async_session_maker()
 
         # self.engine = create_async_engine(
         #     URL.create(

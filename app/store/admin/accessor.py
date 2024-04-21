@@ -17,7 +17,7 @@ class AdminAccessor(BaseAccessor):
 
     async def get_by_email(self, email: str) -> AdminModel | None:
         self.logger.info(f"Ищем по емейлу: {email}")
-        async with self.app.database.session as session:
+        async with self.app.database.session() as session:
             query = select(AdminModel).where(AdminModel.email == email)
             admin = await session.scalar(query)
         return admin
@@ -28,7 +28,7 @@ class AdminAccessor(BaseAccessor):
             email=email,
             password=sha256(password.encode()).hexdigest()
         )
-        async with self.app.database.session as session:
+        async with self.app.database.session() as session:
             exist_admin = await self.get_by_email(admin.email)
             if exist_admin is None:
                 self.logger.info(f"Добавляем админа {admin.email}")
