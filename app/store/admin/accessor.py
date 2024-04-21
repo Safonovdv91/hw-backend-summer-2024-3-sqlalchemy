@@ -16,24 +16,25 @@ class AdminAccessor(BaseAccessor):
         )
 
     async def get_by_email(self, email: str) -> AdminModel | None:
+        self.logger.info(f"Ищем по емейлу: {email}")
         async with self.app.database.session as session:
-            self.logger.info(f"Ищем по емейлу: {email}")
             query = select(AdminModel).where(AdminModel.email == email)
             admin = await session.scalar(query)
         return admin
 
     async def create_admin(self, email: str, password: str) -> AdminModel:
+        self.logger.info("Создаем админа")
         admin = AdminModel(
             email=email,
             password=sha256(password.encode()).hexdigest()
         )
-
         async with self.app.database.session as session:
             exist_admin = await self.get_by_email(admin.email)
-            if exist_admin.email == admin.email:
-                self.logger.warn("Пользователь уже существует")
-            else:
-                self.logger.info("Добавляем админа")
+            if exist_admin is None:
+                self.logger.info(f"Добавляем админа {admin.email}")
                 session.add(admin)
                 await session.commit()
+            else:
+                self.logger.warn(f"Пользователь {admin.email} уже существует  ")
+                return admin
         return admin

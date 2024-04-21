@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from app.admin.models import AdminModel
 
 
-
 class Database:
     def __init__(self, app: "Application") -> None:
         self.app = app
@@ -52,5 +51,4 @@ class Database:
         # )
 
     async def disconnect(self, *args: Any, **kwargs: Any) -> None:
-        raise NotImplementedError
-
+        pass
