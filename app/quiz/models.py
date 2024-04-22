@@ -36,4 +36,3 @@ class AnswerModel(BaseModel):
 
     question_id: Mapped[int] = mapped_column(ForeignKey("questions.id"))
     question: Mapped["QuestionModel"] = relationship(back_populates="answers")
-
